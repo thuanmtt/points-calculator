@@ -5,6 +5,7 @@
     <title>Points Calculator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* base styles */
         body {
@@ -108,12 +109,16 @@
             </tbody>
         </table>
         <button id="reset-button" class="btn btn-danger">Reset Scores</button>
+        <button id="history-button" class="btn btn-info">View History</button>
+
     </div>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script>
         $(function () {
             // Load data from localStorage
             var players = JSON.parse(localStorage.getItem('players')) || [];
+            var matches = JSON.parse(localStorage.getItem('matches')) || [];
 
             // Render player table
             renderTable();
@@ -137,18 +142,32 @@
             $('#score-form').submit(function (event) {
                 event.preventDefault();
                 var scores = $('#score-input').val().split(',');
+                var matchData = {
+                    timestamp: new Date().getTime(),
+                    players: []
+                };
                 for (var i = 0; i < players.length; i++) {
                     var score = scores[i].trim();
                     if (score === '-') {
                         // Calculate this player's score as the negative sum of all other players' scores
                         var points = sumNumericValues(scores);
                         players[i].score += points;
+                        matchData.players.push({
+                            name: players[i].name,
+                            score: points
+                        });
                     } else {
-                        var points = parseInt(score);
-                        players[i].score -= points;
+                        var points = -parseInt(score);
+                        players[i].score += points;
+                        matchData.players.push({
+                            name: players[i].name,
+                            score: points
+                        });
                     }
                 }
+                matches.push(matchData);
                 localStorage.setItem('players', JSON.stringify(players));
+                localStorage.setItem('matches', JSON.stringify(matches));
                 renderTable();
                 $('#score-input').val('');
             });
@@ -156,8 +175,32 @@
             // Handle reset button click
             $('#reset-button').click(function () {
                 localStorage.removeItem('players');
+                localStorage.removeItem('matches');
                 players = [];
+                matches = [];
                 renderTable();
+            });
+
+            // Handle history button click
+            $('#history-button').click(function () {
+                var html = '';
+                for (var i = 0; i < matches.length; i++) {
+                    var match = matches[i];
+                    var timestamp = new Date(match.timestamp).toLocaleString();
+                    html += '<h4>' + timestamp + '</h4>';
+                    html += '<table class="table">';
+                    html += '<thead><tr><th>Player Name</th><th>Score</th></tr></thead>';
+                    html += '<tbody>';
+                    for (var j = 0; j < match.players.length; j++) {
+                        var player = match.players[j];
+                        html += '<tr><td>' + player.name + '</td><td>' + player.score + '</td></tr>';
+                    }
+                    html += '</tbody></table>';
+                }
+                Swal.fire({
+                    title: 'Match History',
+                    html: html
+                });
             });
 
             function renderTable() {
