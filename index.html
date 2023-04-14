@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Points Calculator</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Points Calculator</h1>
+        <form id="player-form">
+            <div class="form-group">
+                <label for="player-name">Enter Player Names:</label>
+                <input type="text" class="form-control" id="player-name" placeholder="Player 1">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Player</button>
+        </form>
+        <hr>
+        <form id="score-form">
+            <div class="form-group">
+                <label for="score-input">Enter Scores:</label>
+                <input type="text" class="form-control" id="score-input" placeholder="1,-,7">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Scores</button>
+        </form>
+        <hr>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Player Name</th>
+                    <th>Total Points</th>
+                </tr>
+            </thead>
+            <tbody id="score-table">
+            </tbody>
+        </table>
+        <button id="reset-button" class="btn btn-danger">Reset Scores</button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script>
+        $(function () {
+            // Load data from localStorage
+            var players = JSON.parse(localStorage.getItem('players')) || [];
+
+            // Render player table
+            renderTable();
+
+            // Handle player form submit
+            $('#player-form').submit(function (event) {
+                event.preventDefault();
+                var playerName = $('#player-name').val().trim();
+                if (playerName) {
+                    players.push({
+                        name: playerName,
+                        score: 0
+                    });
+                    localStorage.setItem('players', JSON.stringify(players));
+                    renderTable();
+                    $('#player-name').val('');
+                }
+            });
+
+            // Handle score form submit
+            $('#score-form').submit(function (event) {
+                event.preventDefault();
+                var scores = $('#score-input').val().split(',');
+                for (var i = 0; i < players.length; i++) {
+                    var score = scores[i].trim();
+                    if (score === '-') {
+                        // Calculate this player's score as the negative sum of all other players' scores
+                        var points = sumNumericValues(scores);
+                        players[i].score += points;
+                    } else {
+                        var points = parseInt(score);
+                        players[i].score -= points;
+                    }
+                }
+                localStorage.setItem('players', JSON.stringify(players));
+                renderTable();
+                $('#score-input').val('');
+            });
+
+            // Handle reset button click
+            $('#reset-button').click(function () {
+                localStorage.removeItem('players');
+                players = [];
+                renderTable();
+            });
+
+            function renderTable() {
+                $('#score-table').empty();
+                for (var i = 0; i < players.length; i++) {
+                    var tr = $('<tr>');
+                    tr.append($('<td>').text(players[i].name));
+                    tr.append($('<td>').text(players[i].score));
+                    $('#score-table').append(tr);
+                }
+            }
+
+            function sumNumericValues(values) {
+                let sum = 0;
+                for (let i = 0; i < values.length; i++) {
+                    const num = Number(values[i]);
+                    if (!isNaN(num)) {
+                        sum += num;
+                    }
+                }
+                return sum;
+            }
+        });
+
+    </script>
+</body>
+
+</html>
