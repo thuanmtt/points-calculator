@@ -85,18 +85,26 @@
         <form id="player-form">
             <div class="form-group">
                 <label for="player-name">Enter Player Names:</label>
-                <input type="text" class="form-control" id="player-name" placeholder="Player 1">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="player-name" placeholder="Player 1">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">Add Player</button>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Add Player</button>
         </form>
         <hr>
         <form id="score-form">
             <div class="form-group">
                 <label for="score-input">Enter Scores:</label>
-                <input type="text" class="form-control" id="score-input" placeholder="1,-,7">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="score-input" placeholder="1,-,7">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">Add Scores</button>
+                    </div>
+                </div>
                 <span class="text-muted h6">If the score is a dash, the player's score as the sum of all other players' scores</span>
             </div>
-            <button type="submit" class="btn btn-primary">Add Scores</button>
         </form>
         <hr>
         <table class="table">
