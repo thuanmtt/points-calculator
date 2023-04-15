@@ -94,6 +94,7 @@
             <div class="form-group">
                 <label for="score-input">Enter Scores:</label>
                 <input type="text" class="form-control" id="score-input" placeholder="1,-,7">
+                <span class="text-muted h6">If the score is a dash, the player's score as the sum of all other players' scores</span>
             </div>
             <button type="submit" class="btn btn-primary">Add Scores</button>
         </form>
@@ -110,7 +111,6 @@
         </table>
         <button id="reset-button" class="btn btn-danger">Reset Scores</button>
         <button id="history-button" class="btn btn-info">View History</button>
-
     </div>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -141,35 +141,46 @@
             // Handle score form submit
             $('#score-form').submit(function (event) {
                 event.preventDefault();
-                var scores = $('#score-input').val().split(',');
-                var matchData = {
-                    timestamp: new Date().getTime(),
-                    players: []
-                };
-                for (var i = 0; i < players.length; i++) {
-                    var score = scores[i].trim();
-                    if (score === '-') {
-                        // Calculate this player's score as the negative sum of all other players' scores
-                        var points = sumNumericValues(scores);
-                        players[i].score += points;
-                        matchData.players.push({
-                            name: players[i].name,
-                            score: points
-                        });
-                    } else {
-                        var points = -parseInt(score);
+                scoreInput = $('#score-input').val()
+                var scores = scoreInput.split(',');
+                if (!validateInput(scoreInput)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Allow only numbers, commas, and dashes!',
+                    })
+                } else if (scores.length !== players.length) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'The number of scores does not match the number of players!'
+                    })
+                } else {
+                    var matchData = {
+                        timestamp: new Date().getTime(),
+                        players: []
+                    };
+                    for (var i = 0; i < players.length; i++) {
+                        var score = scores[i].trim();
+                        if (score === '-') {
+                            // Calculate this player's score as the negative sum of all other players' scores
+                            var points = sumNumericValues(scores);
+
+                        } else {
+                            var points = -parseInt(score);
+                        }
                         players[i].score += points;
                         matchData.players.push({
                             name: players[i].name,
                             score: points
                         });
                     }
+                    matches.push(matchData);
+                    localStorage.setItem('players', JSON.stringify(players));
+                    localStorage.setItem('matches', JSON.stringify(matches));
+                    renderTable();
+                    $('#score-input').val('');
                 }
-                matches.push(matchData);
-                localStorage.setItem('players', JSON.stringify(players));
-                localStorage.setItem('matches', JSON.stringify(matches));
-                renderTable();
-                $('#score-input').val('');
             });
 
             // Handle reset button click
@@ -222,6 +233,11 @@
                     }
                 }
                 return sum;
+            }
+
+            function validateInput(inputString) {
+                var regex = /^[\d,-]+$/;
+                return regex.test(inputString);
             }
         });
 
