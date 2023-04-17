@@ -71,6 +71,11 @@
             margin-top: 20px;
         }
 
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+
         /* styles for small screens */
         @media only screen and (max-width: 600px) {
             body {
@@ -91,7 +96,7 @@
 
 <body>
     <div class="container">
-        <h1>Points Calculator</h1>
+        <h1 id="dark-mode-toggle">Points Calculator</h1>
         <form id="player-form">
             <div class="form-group">
                 <label for="player-name">Enter Player Names:</label>
@@ -113,7 +118,7 @@
                         <button type="submit" class="btn btn-primary">Add Scores</button>
                     </div>
                 </div>
-                <span class="text-muted h6">If the score is a dash, the player's score as the sum of all other players'
+                <span class="h6">If the score is a dash, the player's score as the sum of all other players'
                     scores</span>
             </div>
         </form>
@@ -221,7 +226,7 @@
                         renderTable();
                         Swal.fire(
                             'Deleted!',
-                            'Your file has been deleted.',
+                            'Your history has been deleted.',
                             'success'
                         )
                     }
@@ -248,6 +253,14 @@
                     title: 'Match History',
                     html: html
                 });
+            });
+
+            // Handle dark-mode button click
+            const toggleButton = document.getElementById('dark-mode-toggle');
+            const body = document.body;
+
+            toggleButton.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
             });
 
             function renderTable() {
