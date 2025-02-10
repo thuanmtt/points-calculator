@@ -11,7 +11,11 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GFJ44VE67C"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
         gtag('js', new Date());
 
         gtag('config', 'G-GFJ44VE67C');
@@ -95,202 +99,202 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1 id="dark-mode-toggle">Points Calculator</h1>
-        <form id="player-form">
-            <div class="form-group">
-                <label for="player-name">Enter Player Names:</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="player-name" placeholder="Player 1">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-primary">Add Player</button>
-                    </div>
+<div class="container">
+    <h1 id="dark-mode-toggle">Points Calculator</h1>
+    <form id="player-form">
+        <div class="form-group">
+            <label for="player-name">Enter Player Names:</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="player-name" placeholder="Player 1">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Add Player</button>
                 </div>
             </div>
-        </form>
-        <hr>
-        <form id="score-form">
-            <div class="form-group">
-                <label for="score-input">Enter Scores:</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="score-input" placeholder="1,-,7">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-primary">Add Scores</button>
-                    </div>
+        </div>
+    </form>
+    <hr>
+    <form id="score-form">
+        <div class="form-group">
+            <label for="score-input">Enter Scores:</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="score-input" placeholder="1,-,7">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Add Scores</button>
                 </div>
-                <span class="h6">If the score is a dash, the player's score as the sum of all other players'
+            </div>
+            <span class="h6">If the score is a dash, the player's score as the sum of all other players'
                     scores</span>
-            </div>
-        </form>
-        <hr>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Player Name</th>
-                    <th>Total Points</th>
-                </tr>
-            </thead>
-            <tbody id="score-table">
-            </tbody>
-        </table>
-        <button id="reset-button" class="btn btn-danger">Reset Scores</button>
-        <button id="history-button" class="btn btn-info">View History</button>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script>
-        $(function () {
-            // Load data from localStorage
-            var players = JSON.parse(localStorage.getItem('players')) || [];
-            var matches = JSON.parse(localStorage.getItem('matches')) || [];
+        </div>
+    </form>
+    <hr>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Player Name</th>
+            <th>Total Points</th>
+        </tr>
+        </thead>
+        <tbody id="score-table">
+        </tbody>
+    </table>
+    <button id="reset-button" class="btn btn-danger">Reset Scores</button>
+    <button id="history-button" class="btn btn-info">View History</button>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script>
+    $(function () {
+        // Load data from localStorage
+        var players = JSON.parse(localStorage.getItem('players')) || [];
+        var matches = JSON.parse(localStorage.getItem('matches')) || [];
 
-            // Render player table
-            renderTable();
+        // Render player table
+        renderTable();
 
-            // Handle player form submit
-            $('#player-form').submit(function (event) {
-                event.preventDefault();
-                var playerName = $('#player-name').val().trim();
-                if (playerName) {
-                    players.push({
-                        name: playerName,
-                        score: 0
-                    });
-                    localStorage.setItem('players', JSON.stringify(players));
-                    renderTable();
-                    $('#player-name').val('');
-                }
-            });
-
-            // Handle score form submit
-            $('#score-form').submit(function (event) {
-                event.preventDefault();
-                scoreInput = $('#score-input').val()
-                var scores = scoreInput.split(',');
-                if (!validateInput(scoreInput)) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Allow only numbers, commas, and dashes!',
-                    })
-                } else if (scores.length !== players.length) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'The number of scores does not match the number of players!'
-                    })
-                } else {
-                    var matchData = {
-                        timestamp: new Date().getTime(),
-                        players: []
-                    };
-                    for (var i = 0; i < players.length; i++) {
-                        var score = scores[i].trim();
-                        if (score === '-') {
-                            // Calculate this player's score as the negative sum of all other players' scores
-                            var points = sumNumericValues(scores);
-
-                        } else {
-                            var points = -parseInt(score);
-                        }
-                        players[i].score += points;
-                        matchData.players.push({
-                            name: players[i].name,
-                            score: points
-                        });
-                    }
-                    matches.push(matchData);
-                    localStorage.setItem('players', JSON.stringify(players));
-                    localStorage.setItem('matches', JSON.stringify(matches));
-                    renderTable();
-                    $('#score-input').val('');
-                }
-            });
-
-            // Handle reset button click
-            $('#reset-button').click(function () {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        localStorage.removeItem('players');
-                        localStorage.removeItem('matches');
-                        players = [];
-                        matches = [];
-                        renderTable();
-                        Swal.fire(
-                            'Deleted!',
-                            'Your history has been deleted.',
-                            'success'
-                        )
-                    }
-                })
-            });
-
-            // Handle history button click
-            $('#history-button').click(function () {
-                var html = '';
-                for (var i = 0; i < matches.length; i++) {
-                    var match = matches[i];
-                    var timestamp = new Date(match.timestamp).toLocaleString();
-                    html += '<h4>' + timestamp + '</h4>';
-                    html += '<table class="table">';
-                    html += '<thead><tr><th>Player Name</th><th>Score</th></tr></thead>';
-                    html += '<tbody>';
-                    for (var j = 0; j < match.players.length; j++) {
-                        var player = match.players[j];
-                        html += '<tr><td>' + player.name + '</td><td>' + player.score + '</td></tr>';
-                    }
-                    html += '</tbody></table>';
-                }
-                Swal.fire({
-                    title: 'Match History',
-                    html: html
+        // Handle player form submit
+        $('#player-form').submit(function (event) {
+            event.preventDefault();
+            var playerName = $('#player-name').val().trim();
+            if (playerName) {
+                players.push({
+                    name: playerName,
+                    score: 0
                 });
-            });
-
-            // Handle dark-mode button click
-            const toggleButton = document.getElementById('dark-mode-toggle');
-            const body = document.body;
-
-            toggleButton.addEventListener('click', () => {
-                body.classList.toggle('dark-mode');
-            });
-
-            function renderTable() {
-                $('#score-table').empty();
-                for (var i = 0; i < players.length; i++) {
-                    var tr = $('<tr>');
-                    tr.append($('<td>').text(players[i].name));
-                    tr.append($('<td>').text(players[i].score));
-                    $('#score-table').append(tr);
-                }
-            }
-
-            function sumNumericValues(values) {
-                let sum = 0;
-                for (let i = 0; i < values.length; i++) {
-                    const num = Number(values[i]);
-                    if (!isNaN(num)) {
-                        sum += num;
-                    }
-                }
-                return sum;
-            }
-
-            function validateInput(inputString) {
-                var regex = /^[\d,-]+$/;
-                return regex.test(inputString);
+                localStorage.setItem('players', JSON.stringify(players));
+                renderTable();
+                $('#player-name').val('');
             }
         });
 
-    </script>
+        // Handle score form submit
+        $('#score-form').submit(function (event) {
+            event.preventDefault();
+            scoreInput = $('#score-input').val()
+            var scores = scoreInput.split(',');
+            if (!validateInput(scoreInput)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Allow only numbers, commas, and dashes!',
+                })
+            } else if (scores.length !== players.length) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'The number of scores does not match the number of players!'
+                })
+            } else {
+                var matchData = {
+                    timestamp: new Date().getTime(),
+                    players: []
+                };
+                for (var i = 0; i < players.length; i++) {
+                    var score = scores[i].trim();
+                    if (score === '-') {
+                        // Calculate this player's score as the negative sum of all other players' scores
+                        var points = sumNumericValues(scores);
+
+                    } else {
+                        var points = -parseInt(score);
+                    }
+                    players[i].score += points;
+                    matchData.players.push({
+                        name: players[i].name,
+                        score: points
+                    });
+                }
+                matches.push(matchData);
+                localStorage.setItem('players', JSON.stringify(players));
+                localStorage.setItem('matches', JSON.stringify(matches));
+                renderTable();
+                $('#score-input').val('');
+            }
+        });
+
+        // Handle reset button click
+        $('#reset-button').click(function () {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('players');
+                    localStorage.removeItem('matches');
+                    players = [];
+                    matches = [];
+                    renderTable();
+                    Swal.fire(
+                        'Deleted!',
+                        'Your history has been deleted.',
+                        'success'
+                    )
+                }
+            })
+        });
+
+        // Handle history button click
+        $('#history-button').click(function () {
+            var html = '';
+            for (var i = 0; i < matches.length; i++) {
+                var match = matches[i];
+                var timestamp = new Date(match.timestamp).toLocaleString();
+                html += '<h4>' + timestamp + '</h4>';
+                html += '<table class="table">';
+                html += '<thead><tr><th>Player Name</th><th>Score</th></tr></thead>';
+                html += '<tbody>';
+                for (var j = 0; j < match.players.length; j++) {
+                    var player = match.players[j];
+                    html += '<tr><td>' + player.name + '</td><td>' + player.score + '</td></tr>';
+                }
+                html += '</tbody></table>';
+            }
+            Swal.fire({
+                title: 'Match History',
+                html: html
+            });
+        });
+
+        // Handle dark-mode button click
+        const toggleButton = document.getElementById('dark-mode-toggle');
+        const body = document.body;
+
+        toggleButton.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+        });
+
+        function renderTable() {
+            $('#score-table').empty();
+            for (var i = 0; i < players.length; i++) {
+                var tr = $('<tr>');
+                tr.append($('<td>').text(players[i].name));
+                tr.append($('<td>').text(players[i].score));
+                $('#score-table').append(tr);
+            }
+        }
+
+        function sumNumericValues(values) {
+            let sum = 0;
+            for (let i = 0; i < values.length; i++) {
+                const num = Number(values[i]);
+                if (!isNaN(num)) {
+                    sum += num;
+                }
+            }
+            return sum;
+        }
+
+        function validateInput(inputString) {
+            var regex = /^[\d,-]+$/;
+            return regex.test(inputString);
+        }
+    });
+
+</script>
 </body>
 
 </html>
