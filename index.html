@@ -3,6 +3,7 @@
 
 <head>
     <title>Points Calculator</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link rel="icon" type="image/x-icon" href="https://avatars.githubusercontent.com/u/86670683">
@@ -139,6 +140,8 @@
     </table>
     <button id="reset-button" class="btn btn-danger">Reset Scores</button>
     <button id="history-button" class="btn btn-info">View History</button>
+    <button id="split-button" class="btn btn-warning">Split</button>
+
 </div>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -255,6 +258,75 @@
             }
             Swal.fire({
                 title: 'Match History',
+                html: html
+            });
+        });
+
+        $('#split-button').click(function () {
+            var debtors = [];
+            var creditors = [];
+            var totalPoints = 0;
+
+            // Tạo một bản sao của danh sách players để không thay đổi số điểm gốc
+            var playersCopy = players.map(function (player) {
+                return {name: player.name, score: player.score};
+            });
+
+            // Phân loại người trả nợ và người nhận nợ
+            playersCopy.forEach(function (player) {
+                totalPoints += player.score;
+                if (player.score < 0) {
+                    debtors.push(player);
+                } else if (player.score > 0) {
+                    creditors.push(player);
+                }
+            });
+
+            if (totalPoints !== 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Cannot split the money!',
+                    text: 'Total score is not 0. Please check again.',
+                });
+                return;
+            }
+
+            // Tính toán và thông báo số tiền cần chia
+            var transactions = [];
+            var i = 0;
+            var j = 0;
+
+            while (i < debtors.length && j < creditors.length) {
+                var debtor = debtors[i];
+                var creditor = creditors[j];
+                var transferAmount = Math.min(Math.abs(debtor.score), creditor.score);
+
+                transactions.push(`${debtor.name} -> ${creditor.name}: ${transferAmount}`);
+
+                // Cập nhật số tiền còn lại trong bản sao
+                debtors[i].score += transferAmount;
+                creditors[j].score -= transferAmount;
+
+                // Cập nhật index
+                if (debtors[i].score === 0) {
+                    i++;
+                }
+                if (creditors[j].score === 0) {
+                    j++;
+                }
+            }
+
+            // Hiển thị thông báo
+            var html = '';
+            html += '<table class="table">';
+            html += '<tbody>';
+            transactions.forEach(function (transaction) {
+                html += '<tr><td>' + transaction + '</td><td>';
+            });
+            html += '</tbody></table>';
+
+            Swal.fire({
+                title: 'Split',
                 html: html
             });
         });
