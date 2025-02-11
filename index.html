@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 
 <head>
     <title>Points Calculator</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css"/>
     <link rel="icon" type="image/x-icon" href="https://avatars.githubusercontent.com/u/86670683">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Google tag (gtag.js) -->
@@ -70,15 +71,17 @@
             cursor: pointer;
         }
 
-        .result {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-
         body.dark-mode {
             background-color: #333;
             color: #fff;
+        }
+
+        #language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 24px;
         }
 
         /* styles for small screens */
@@ -91,24 +94,23 @@
                 width: 90%;
                 margin: 0 auto;
             }
-
-            .result {
-                font-size: 1.5rem;
-            }
         }
     </style>
 </head>
 
 <body>
 <div class="container">
-    <h1 id="dark-mode-toggle">Points Calculator</h1>
+    <h1 id="dark-mode-toggle">Tính Điểm</h1>
+    <div id="language-switcher" style="position: absolute; top: 20px; right: 20px; cursor: pointer;">
+        <span id="flag-icon" class="fi fi-vn"></span>
+    </div>
     <form id="player-form">
         <div class="form-group">
-            <label for="player-name">Enter Player Names:</label>
+            <label for="player-name">Nhập Tên Người Chơi:</label>
             <div class="input-group">
                 <input type="text" class="form-control" id="player-name" placeholder="Player 1">
                 <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary">Add Player</button>
+                    <button type="submit" id="add-player" class="btn btn-primary">Thêm</button>
                 </div>
             </div>
         </div>
@@ -116,37 +118,63 @@
     <hr>
     <form id="score-form">
         <div class="form-group">
-            <label for="score-input">Enter Scores:</label>
+            <label for="score-input">Nhập Điểm:</label>
             <div class="input-group">
-                <input type="text" class="form-control" id="score-input" placeholder="1,-,7">
+                <input type="text" class="form-control" id="score-input" placeholder="1,-,7,5,6">
                 <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary">Add Scores</button>
+                    <button type="submit" id="add-scores" class="btn btn-primary">Thêm</button>
                 </div>
             </div>
-            <span class="h6">If the score is a dash, the player's score as the sum of all other players'
-                    scores</span>
+            <span class="h6 text-muted">Nếu điểm là dấu gạch ngang, điểm của người chơi sẽ là tổng điểm của tất cả các người chơi còn lại</span>
         </div>
     </form>
     <hr>
     <table class="table">
         <thead>
         <tr>
-            <th>Player Name</th>
-            <th>Total Points</th>
+            <th class="player-name-header">Tên Người Chơi</th>
+            <th class="total-points-header">Tổng Điểm</th>
         </tr>
         </thead>
         <tbody id="score-table">
         </tbody>
     </table>
-    <button id="reset-button" class="btn btn-danger">Reset Scores</button>
-    <button id="history-button" class="btn btn-info">View History</button>
-    <button id="split-button" class="btn btn-warning">Split</button>
+    <button id="reset-button" class="btn btn-danger">Xóa Điểm</button>
+    <button id="history-button" class="btn btn-info">Xem Lịch Sử</button>
+    <button id="split-button" class="btn btn-warning">Chia Tiền</button>
 
 </div>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script>
     $(function () {
+        var translations = {
+            en: {
+                title: "Points Calculator",
+                enterPlayerNames: "Enter Player Names:",
+                enterScores: "Enter Scores:",
+                enterScoresHelpText: "If the score is a dash, the player's score as the sum of all other players' scores",
+                add: "Add",
+                playerName: "Player Name",
+                totalPoints: "Total Points",
+                resetScores: "Reset Scores",
+                viewHistory: "View History",
+                splitMoney: "Split Money"
+            },
+            vi: {
+                title: "Tính Điểm",
+                enterPlayerNames: "Nhập Tên Người Chơi:",
+                enterScores: "Nhập Điểm:",
+                enterScoresHelpText: "Nếu điểm là dấu gạch ngang, điểm của người chơi sẽ là tổng điểm của tất cả các người chơi còn lại",
+                add: "Thêm",
+                playerName: "Tên Người Chơi",
+                totalPoints: "Tổng Điểm",
+                resetScores: "Xóa Điểm",
+                viewHistory: "Xem Lịch Sử",
+                splitMoney: "Chia Tiền"
+            }
+        };
+
         // Load data from localStorage
         var players = JSON.parse(localStorage.getItem('players')) || [];
         var matches = JSON.parse(localStorage.getItem('matches')) || [];
@@ -178,13 +206,13 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'Allow only numbers, commas, and dashes!',
+                    text: 'Chỉ cho phép số, dấu phẩy và dấu gạch ngang!',
                 })
             } else if (scores.length !== players.length) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'The number of scores does not match the number of players!'
+                    text: 'Số điểm nhập không khớp với số lượng người chơi!'
                 })
             } else {
                 var matchData = {
@@ -217,13 +245,13 @@
         // Handle reset button click
         $('#reset-button').click(function () {
             Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+                title: 'Bạn có chắc không?',
+                text: "Bạn sẽ không thể hoàn tác điều này!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonText: 'Chắc chắn!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     localStorage.removeItem('players');
@@ -232,8 +260,8 @@
                     matches = [];
                     renderTable();
                     Swal.fire(
-                        'Deleted!',
-                        'Your history has been deleted.',
+                        'Đã xoá!',
+                        'Lịch sử đấu đã bị xóa.',
                         'success'
                     )
                 }
@@ -257,7 +285,7 @@
                 html += '</tbody></table>';
             }
             Swal.fire({
-                title: 'Match History',
+                title: 'Lịch sử đấu',
                 html: html
             });
         });
@@ -285,8 +313,8 @@
             if (totalPoints !== 0) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Cannot split the money!',
-                    text: 'Total score is not 0. Please check again.',
+                    title: 'Không thể chia tiền!',
+                    text: 'Tổng điểm không phải là 0. Vui lòng kiểm tra lại.',
                 });
                 return;
             }
@@ -326,7 +354,7 @@
             html += '</tbody></table>';
 
             Swal.fire({
-                title: 'Split',
+                title: 'Chia tiền',
                 html: html
             });
         });
@@ -363,6 +391,50 @@
         function validateInput(inputString) {
             var regex = /^[\d,-]+$/;
             return regex.test(inputString);
+        }
+
+
+        // Lưu ngôn ngữ hiện tại vào localStorage
+        var currentLang = localStorage.getItem('language') || 'vi'; // Mặc định là tiếng Việt
+
+        // Cập nhật ngôn ngữ khi trang tải
+        changeLanguage(currentLang);
+
+        // Khi nhấn vào icon chuyển ngôn ngữ
+        $('#language-switcher').click(function () {
+            if (currentLang === 'en') {
+                currentLang = 'vi'; // Chuyển sang tiếng Việt
+            } else {
+                currentLang = 'en'; // Chuyển sang tiếng Anh
+            }
+            localStorage.setItem('language', currentLang); // Lưu ngôn ngữ vào localStorage
+            changeLanguage(currentLang); // Cập nhật lại ngôn ngữ
+        });
+
+        // Hàm thay đổi ngôn ngữ
+        function changeLanguage(lang) {
+
+
+            // Cập nhật các phần tử trên trang với bản dịch
+            $('h1#dark-mode-toggle').text(translations[lang].title);
+            $('label[for="player-name"]').text(translations[lang].enterPlayerNames);
+            $('#player-name').attr('placeholder', translations[lang].playerName);
+            $('#reset-button').text(translations[lang].resetScores);
+            $('#history-button').text(translations[lang].viewHistory);
+            $('#split-button').text(translations[lang].splitMoney);
+            $('label[for="score-input"]').text(translations[lang].enterScores);
+            $('.h6').text(translations[lang].enterScoresHelpText);
+            $('#add-player').text(translations[lang].addPlayer);
+            $('#add-scores').text(translations[lang].addScores);
+            $('.player-name-header').text(translations[lang].playerName);
+            $('.total-points-header').text(translations[lang].totalPoints);
+
+            // Cập nhật icon ngôn ngữ
+            if (lang === 'vi') {
+                $('#flag-icon').removeClass('fi-us').addClass('fi-vn');
+            } else {
+                $('#flag-icon').removeClass('fi-vn').addClass('fi-us');
+            }
         }
     });
 
